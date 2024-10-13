@@ -8,10 +8,11 @@ This is a Jira Clone project built with **Next.js** for the frontend and **ASP.N
 - User authentication (login/logout)
 - Project and issue management
 - Responsive design
+- UI components built using **Shadcn**
 
 ## Technologies
 
-- **Frontend**: Next.js, React
+- **Frontend**: Next.js, React, Shadcn
 - **Backend**: ASP.NET 8
 - **Database**: MySQL (running in Docker)
 
@@ -52,3 +53,8 @@ In the `client` directory, start the Next.js development server:
 
 ```bash
 npm run dev
+
+
+If you'd like to contribute, feel free to open issues or submit pull requests.
+
+This project is licensed under the MIT License - see the LICENSE file for details.
