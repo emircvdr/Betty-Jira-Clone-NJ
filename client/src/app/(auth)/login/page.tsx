@@ -1,18 +1,22 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaArrowDown, FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
 
 const Login = () => {
+    const router = useRouter();
     const [form, setForm] = useState({
         email: "",
         password: ""
     });
+    const [error, setError] = useState("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,13 +24,41 @@ const Login = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(form);
-        // Reset the form after submission
+        try {
+            const response = await fetch('http://localhost:5135/api/Auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(form),
+            });
+
+            if (!response.ok) {
+                throw new Error("An error occurred while logging in");
+            }
+
+            const data = await response.json();
+            Cookies.set('token', data.token, { expires: 7 }); // Token'ı çerez olarak kaydet (7 gün geçerli)
+            router.push('/');
+            // Burada kullanıcıyı yönlendirebilirsiniz
+        } catch (error) {
+            setError(error.message); // Hata mesajını state'e ata
+            console.error("Login error:", error);
+        }
+
+        // Formu sıfırla
         setForm({
             email: "",
             password: ""
         });
     };
+
+    useEffect(() => {
+        const token = Cookies.get('token');
+        if (token) {
+            router.push('/');
+        }
+    }, []);
 
     return (
         <div className="flex justify-center w-full px-4">
@@ -53,11 +85,9 @@ const Login = () => {
                             value={form.password}
                             onChange={handleChange}
                         />
+                        <Button size="lg" className="w-full">Login</Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button size="lg" className="w-full">Login</Button>
-                </CardFooter>
                 <div className="flex justify-evenly items-center">
                     <Separator orientation="horizontal" className="w-[150px]" />
                     <FaArrowDown color="#c4c3c3d5" />

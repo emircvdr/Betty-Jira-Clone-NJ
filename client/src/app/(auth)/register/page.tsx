@@ -1,14 +1,19 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaArrowDown, FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
 
 const Register = () => {
+    const router = useRouter();
+    const [error, setError] = useState("");
+
     const [form, setForm] = useState({
         username: "",
         email: "",
@@ -21,25 +26,42 @@ const Register = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(form);
+        try {
 
-        const result = await fetch("http://localhost:5135/api/Auth", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(form)
-        });
+            const result = await fetch("http://localhost:5135/api/Auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(form)
+            });
 
+            if (!result.ok) {
+                throw new Error("An error occurred while registering");
+            }
+
+            const data = await result.json();
+            Cookies.set("token", data.token, { expires: 7 });
+            router.push("/");
+
+        } catch (error) {
+            setError(error.message);
+            console.error("Register error:", error);
+        }
         // Reset the form after submission
         setForm({
             username: "",
             email: "",
             password: ""
         });
-
-        console.log(result);
     };
+
+    useEffect(() => {
+        const token = Cookies.get('token');
+        if (token) {
+            router.push('/');
+        }
+    }, []);
 
     return (
         <div className="flex justify-center w-full px-4">
@@ -75,11 +97,9 @@ const Register = () => {
                             value={form.password}
                             onChange={handleChange}
                         />
+                        <Button size="lg" className="w-full">Register</Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button size="lg" className="w-full">Register</Button>
-                </CardFooter>
                 <div className="flex justify-evenly items-center">
                     <Separator orientation="horizontal" className="w-[150px]" />
                     <FaArrowDown color="#c4c3c3d5" />
