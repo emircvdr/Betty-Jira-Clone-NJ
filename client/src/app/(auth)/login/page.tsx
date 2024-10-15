@@ -38,6 +38,7 @@ const Login = () => {
             }
 
             const data = await response.json();
+            Cookies.set('user', JSON.stringify(data.userId), { expires: 7 }); // Kullanıcı bilgilerini çerez olarak kaydet (7 gün geçerli)
             Cookies.set('token', data.token, { expires: 7 }); // Token'ı çerez olarak kaydet (7 gün geçerli)
             router.push('/');
             // Burada kullanıcıyı yönlendirebilirsiniz
