@@ -11,49 +11,59 @@ import { HiHome } from "react-icons/hi";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
 import { FaPlusCircle } from "react-icons/fa";
+import { createWorkplace, fetchWorkplaces } from "@/app/api/workplacesAPI";
+import { MdOutlineTaskAlt } from "react-icons/md";
+import { CiSettings } from "react-icons/ci";
+import { IoPeopleOutline } from "react-icons/io5";
 
 const Navbar = () => {
     const route = useRouter();
     const pathname = usePathname(); // Aktif olan route'u almak için kullanıyoruz
     const [workplaceName, setWorkplaceName] = useState(""); // Workplace adını tutacak state
     const userId = Cookies.get("user"); // Cookie'den user id'sini alıyoruz
-    const token = Cookies.get("token"); // Yetkilendirme için token alıyoruz
-
     const [workplaces, setWorkplaces] = useState([]);
-    useEffect(() => {
-        const token = Cookies.get("token");
-        const userId = Cookies.get("user");
 
-        const fetchData = async () => {
+    const [selectedWorkplace, setSelectedWorkplace] = useState("");
+
+    useEffect(() => {
+        const loadWorkplaces = async () => {
             try {
-                const response = await fetch(`http://localhost:5135/api/Workplace/getWorkplaces/${userId}`, {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,  // Bearer token ile isteği yetkilendiriyoruz
-                    },
-                })
-                if (!response.ok) {
-                    throw new Error("Veri alınırken bir hata oluştu");
-                }
-                const data = await response.json();
+                const data = await fetchWorkplaces(userId);
+                console.log(data)
                 setWorkplaces(data);
             } catch (error) {
-                console.error("Bir hata oluştu: ", error);
+                console.error(error);
             }
         }
-        fetchData();
-    }, []); // Workplace'leri tutacak state
+        loadWorkplaces();
+
+        const savedWorkplace = Cookies.get("workplace");
+        if (savedWorkplace) {
+            setSelectedWorkplace(String(savedWorkplace)); // Cookie'den gelen ID'yi string'e çevir
+        }
+
+    }, []);
 
     const navbarItems = [
         {
-            title: "Dashboard",
+            title: "Home",
             icon: <HiHome />,
             route: "/",
         },
         {
-            title: "Projects",
-            icon: <HiHome />,
+            title: "My Tasks",
+            icon: <MdOutlineTaskAlt />,
+            route: "/tasks",
+        },
+        {
+            title: "Settings",
+            icon: <CiSettings />,
             route: "/settings",
+        },
+        {
+            title: "Members",
+            icon: <IoPeopleOutline />,
+            route: "/members",
         },
     ];
 
@@ -65,28 +75,19 @@ const Navbar = () => {
 
     const handleCreateWorkplace = async () => {
         try {
-            const response = await fetch("http://localhost:5135/api/Workplace/createWorkplace", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`, // Token ile yetkilendirme
-                },
-                body: JSON.stringify({
-                    WorkplaceName: workplaceName,
-                    WorkplaceAdminId: userId, // User ID'yi backend'e gönderiyoruz
-                }),
-            });
-
-            if (response.ok) {
-                console.log("Workplace başarıyla oluşturuldu.");
-                setWorkplaceName(""); // İşlem başarılı olursa input'u temizliyoruz
-            } else {
-                console.error("Workplace oluşturulamadı.");
-            }
+            await createWorkplace(workplaceName, userId);
+            setWorkplaceName("");
+            const data = await fetchWorkplaces(userId);
+            setWorkplaces(data);
         } catch (error) {
-            console.error("Bir hata oluştu: ", error);
+            console.error(error);
         }
     };
+
+    const handleWorkplaceChange = (workplaceId) => {
+        Cookies.set("workplace", workplaceId);
+        setSelectedWorkplace(workplaceId);
+    }
 
     return (
         <div className="flex flex-row">
@@ -106,9 +107,27 @@ const Navbar = () => {
                                     </h3>
                                     <FaPlusCircle className="cursor-pointer" />
                                 </div>
-                                <Select>
+                                <Select value={selectedWorkplace || ""} onValueChange={handleWorkplaceChange}>
                                     <SelectTrigger className="w-[268px] h-[50px]">
-                                        <SelectValue placeholder="Select a Workplace" />
+                                        <SelectValue>
+                                            {
+                                                (() => {
+                                                    const selectedWorkplaceData = workplaces.find((workplace) => String(workplace.id) === selectedWorkplace);
+                                                    if (selectedWorkplaceData) {
+                                                        const circleText = selectedWorkplaceData.workplaceName.charAt(0).toUpperCase(); // İlk harfi al
+                                                        return (
+                                                            <div className="flex flex-row gap-3">
+                                                                <span className="font-bold">{circleText}</span> {/* İlk harf */}
+                                                                <span className="ml-2">
+                                                                    {selectedWorkplaceData.workplaceName}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return "Select a Workplace"; // Eğer seçilen yoksa placeholder
+                                                })()
+                                            }
+                                        </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
@@ -119,9 +138,9 @@ const Navbar = () => {
                                                         ? workplace.workplaceName.charAt(0).toUpperCase() // Her workplace'in adının ilk harfi
                                                         : "A";
                                                     return (
-                                                        <SelectItem key={workplace.id} value={workplace?.workplaceName}>
+                                                        <SelectItem key={workplace.id} value={String(workplace.id)}>
                                                             <div className="flex flex-row gap-3">
-                                                                <span className="font-bold">{circleText}</span> {/* Her workplace'in ilk harfi */}
+                                                                <span className="font-bold">{circleText}</span> {/* İlk harf */}
                                                                 <span className="ml-2">
                                                                     {workplace?.workplaceName}
                                                                 </span>
@@ -133,7 +152,6 @@ const Navbar = () => {
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
-
                             </div>
                             :
                             (

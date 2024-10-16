@@ -2,7 +2,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import Navbar from "@/components/Navbar";
 
 
 const Dashboard = () => {
@@ -44,7 +43,6 @@ const Dashboard = () => {
     fetchData();
   }, [router]);
 
-  const circleText = data?.username ? data.username.charAt(0).toUpperCase() : "a";
 
 
   return (

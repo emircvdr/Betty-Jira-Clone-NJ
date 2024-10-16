@@ -42,6 +42,7 @@ const Register = () => {
 
             const data = await result.json();
             Cookies.set("token", data.token, { expires: 7 });
+            Cookies.set("user", data.id, { expires: 7 });
             router.push("/");
 
         } catch (error) {
