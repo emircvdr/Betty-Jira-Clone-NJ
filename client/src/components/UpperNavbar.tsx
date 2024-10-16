@@ -10,7 +10,7 @@ const UpperNavbar = () => {
     const route = useRouter();
     const pathname = usePathname();
     const [data, setData] = useState(null);  // API'den gelen veriyi burada tutacağız
-    const [error, setError] = useState(null); // Hata durumlarını burada tutacağız
+
     useEffect(() => {
         const token = Cookies.get("token");
         const userId = Cookies.get("user");
@@ -31,7 +31,8 @@ const UpperNavbar = () => {
                 const data = await response.json();
                 setData(data);  // Gelen veriyi state'e ata
             } catch (error) {
-                setError(error.message);  // Hata durumunda error state'e ata
+                console.error(error)
+
             }
         };
 
@@ -44,7 +45,7 @@ const UpperNavbar = () => {
     };
     const circleText = data?.username ? data.username.charAt(0).toUpperCase() : "A";
     return (
-        <div className="flex-1 h-[70px] bg-white shadow-md">
+        <div className="flex-1 h-[100px] bg-white shadow-md">
             <div className="flex flex-row w-full h-full items-center justify-between p-7">
                 <h1 className="text-black text-2xl">{titleMapping[pathname]}</h1>
                 <Popover>
