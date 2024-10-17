@@ -15,6 +15,7 @@ import { createWorkplace, fetchWorkplaces } from "@/app/api/workplacesAPI";
 import { MdOutlineTaskAlt } from "react-icons/md";
 import { CiSettings } from "react-icons/ci";
 import { IoPeopleOutline } from "react-icons/io5";
+import { RiNotification3Line } from "react-icons/ri";
 
 const Navbar = () => {
     const route = useRouter();
@@ -22,6 +23,7 @@ const Navbar = () => {
     const [workplaceName, setWorkplaceName] = useState(""); // Workplace adını tutacak state
     const userId = Cookies.get("user"); // Cookie'den user id'sini alıyoruz
     const [workplaces, setWorkplaces] = useState([]);
+    const [workplaceInvites, setWorkplaceInvites] = useState([]);
 
     const [selectedWorkplace, setSelectedWorkplace] = useState("");
 
@@ -35,12 +37,35 @@ const Navbar = () => {
                 console.error(error);
             }
         }
-        loadWorkplaces();
+
 
         const savedWorkplace = Cookies.get("workplace");
         if (savedWorkplace) {
             setSelectedWorkplace(String(savedWorkplace)); // Cookie'den gelen ID'yi string'e çevir
         }
+        const fetchWorkplaceInvites = async () => {
+            const token = Cookies.get("token");
+            const user = Cookies.get("user");
+
+            try {
+                const response = await fetch(`http://localhost:5135/api/WorkplaceInvite/getInviteById/${user}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                })
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+                const data = await response.json();
+                setWorkplaceInvites(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        loadWorkplaces();
+        fetchWorkplaceInvites();
 
     }, []);
 
@@ -49,6 +74,20 @@ const Navbar = () => {
             title: "Home",
             icon: <HiHome />,
             route: "/",
+        },
+        {
+            title: "My Notifications",
+            icon: (
+                <div className="relative">
+                    <RiNotification3Line />
+                    {workplaceInvites.length > 0 && (
+                        <div className="absolute top-[-27px] right-[-250px] w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                            {workplaceInvites.length}
+                        </div>
+                    )}
+                </div>
+            ),
+            route: "/notifications",
         },
         {
             title: "My Tasks",

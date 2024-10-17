@@ -1,11 +1,11 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import UpperNavbar from "@/components/UpperNavbar";
-interface SettingsLayoutProps {
+interface NotificationLayoutProps {
     children: React.ReactNode;
 };
 
-const SettingsLayout = ({ children }: SettingsLayoutProps) => {
+const NotificationsLayout = ({ children }: NotificationLayoutProps) => {
 
 
     return (
@@ -25,4 +25,4 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
     );
 };
 
-export default SettingsLayout;
+export default NotificationsLayout;

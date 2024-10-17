@@ -40,8 +40,7 @@ const Settings = () => {
     const handleUpdate = async () => {
         try {
             const workplaceId = Number(selectedWorkplace);
-            const data = await updateWorkplace(workplaceId, selectedWorkplaceName);
-            console.log("Workplace güncellendi:", data);
+            await updateWorkplace(workplaceId, selectedWorkplaceName);
             toast.success("Workplace Successfully Updated");
         } catch (error) {
             console.error("Güncelleme sırasında hata oluştu:", error);
@@ -51,9 +50,8 @@ const Settings = () => {
     const handleDelete = async () => {
         try {
             const workplaceId = Number(selectedWorkplace);
-            const data = await deleteWorkplace(workplaceId);
-            console.log("Workplace silindi:", data);
-            toast.remove("Workplace Successfully Deleted");
+            await deleteWorkplace(workplaceId);
+            toast.success("Workplace Successfully Deleted");
         } catch (error) {
             console.error("Silme sırasında hata oluştu:", error);
         }

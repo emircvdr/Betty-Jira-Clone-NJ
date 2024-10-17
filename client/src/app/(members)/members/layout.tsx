@@ -1,11 +1,11 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import UpperNavbar from "@/components/UpperNavbar";
-interface SettingsLayoutProps {
+interface MembersLayoutProps {
     children: React.ReactNode;
 };
 
-const SettingsLayout = ({ children }: SettingsLayoutProps) => {
+const MembersLayout = ({ children }: MembersLayoutProps) => {
 
 
     return (
@@ -25,4 +25,4 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
     );
 };
 
-export default SettingsLayout;
+export default MembersLayout;

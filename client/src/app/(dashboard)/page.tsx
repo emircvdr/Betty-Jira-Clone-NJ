@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import Cookies from "js-cookie";
 const Dashboard = () => {
   const router = useRouter();
   const [data, setData] = useState(null);  // API'den gelen veriyi burada tutacağız
-  const [error, setError] = useState(null); // Hata durumlarını burada tutacağız
+
 
 
   useEffect(() => {
@@ -36,17 +37,15 @@ const Dashboard = () => {
         const data = await response.json();
         setData(data);  // Gelen veriyi state'e ata
       } catch (error) {
-        setError(error.message);  // Hata durumunda error state'e ata
+        console.error(error);
       }
     };
-
     fetchData();
   }, [router]);
 
 
 
   return (
-
     <div className="flex flex-col">
       <div>
         <h1 className="text-red-900">hello</h1>

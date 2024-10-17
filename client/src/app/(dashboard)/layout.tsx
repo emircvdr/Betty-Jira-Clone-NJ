@@ -1,12 +1,13 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import UpperNavbar from "@/components/UpperNavbar";
-
-interface RegisterLayoutProps {
+interface DashboardLayoutProps {
     children: React.ReactNode;
 };
 
-const DashboardLayout = ({ children }: RegisterLayoutProps) => {
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+
+
     return (
         <div className="min-h-screen flex flex-col">
             <div className="flex flex-row w-full flex-grow">
