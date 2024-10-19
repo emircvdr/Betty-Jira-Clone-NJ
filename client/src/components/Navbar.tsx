@@ -22,7 +22,6 @@ const Navbar = () => {
     const pathname = usePathname(); // Aktif olan route'u almak için kullanıyoruz
     const [workplaceName, setWorkplaceName] = useState(""); // Workplace adını tutacak state
     const userId = Cookies.get("user"); // Cookie'den user id'sini alıyoruz
-    const workplaceId = Cookies.get("workplace")
     const [workplaces, setWorkplaces] = useState([]);
     const [workplaceInvites, setWorkplaceInvites] = useState([]);
     const [allWorkplaces, setAllWorkplaces] = useState([])
