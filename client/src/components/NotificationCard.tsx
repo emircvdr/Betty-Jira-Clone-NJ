@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button"; // Tailwind CSS ile uyumlu buto
 import Cookies from "js-cookie";
 import toast from 'react-hot-toast';
 
-const NotificationCard = ({ username, workspaceName, invitationId }) => {
+const NotificationCard = ({ username, workspaceName, invitationId, workplaceAdminId, workplaceId }) => {
     const handleAccept = async () => {
         const token = Cookies.get("token");
+        const user = Cookies.get("user")
         try {
             const response = await fetch(`http://localhost:5135/api/WorkplaceInvite/respondToInvite/${invitationId}`, {
                 method: "PUT",
@@ -18,10 +19,28 @@ const NotificationCard = ({ username, workspaceName, invitationId }) => {
                     respondedAt: new Date().toISOString(),
                 }),
             });
-
             if (!response.ok) {
                 throw new Error("Workplace oluşturulamadı.");
             }
+
+            const createRelationWorkplace = await fetch(`http://localhost:5135/api/RelationWorkplace`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    workplaceAdminId: workplaceAdminId,
+                    acceptedUserId: user,
+                    workplaceId: workplaceId,
+
+                }),
+            });
+
+            if (!createRelationWorkplace.ok) {
+                throw new Error("Workplace oluşturulamadı.");
+            }
+
             toast.success("Accepted");
             return await response.json();
 
@@ -63,7 +82,7 @@ const NotificationCard = ({ username, workspaceName, invitationId }) => {
                 {username} has invited you to join the workplace &quot;{workspaceName}&quot;.
             </p>
             <div className="mt-4 flex justify-end space-x-2">
-                <Button onClick={handleAccept}>Accept</Button>
+                <Button onClick={handleAccept} className='bg-green-500'>Accept</Button>
                 <Button onClick={handleReject} variant="destructive">Reject</Button>
             </div>
         </div>

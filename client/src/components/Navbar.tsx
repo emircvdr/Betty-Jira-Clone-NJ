@@ -22,9 +22,11 @@ const Navbar = () => {
     const pathname = usePathname(); // Aktif olan route'u almak için kullanıyoruz
     const [workplaceName, setWorkplaceName] = useState(""); // Workplace adını tutacak state
     const userId = Cookies.get("user"); // Cookie'den user id'sini alıyoruz
+    const workplaceId = Cookies.get("workplace")
     const [workplaces, setWorkplaces] = useState([]);
     const [workplaceInvites, setWorkplaceInvites] = useState([]);
-
+    const [allWorkplaces, setAllWorkplaces] = useState([])
+    const [relationWorkplaces, setRelationWorkplaces] = useState([])
     const [selectedWorkplace, setSelectedWorkplace] = useState("");
 
     useEffect(() => {
@@ -37,8 +39,6 @@ const Navbar = () => {
                 console.error(error);
             }
         }
-
-
         const savedWorkplace = Cookies.get("workplace");
         if (savedWorkplace) {
             setSelectedWorkplace(String(savedWorkplace)); // Cookie'den gelen ID'yi string'e çevir
@@ -64,8 +64,50 @@ const Navbar = () => {
             }
         };
 
+        const listWorkplaces = async () => {
+            const token = Cookies.get("token");
+            try {
+                const response = await fetch(`http://localhost:5135/api/Workplace/listWorkplaces`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                })
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+                const data = await response.json();
+                setAllWorkplaces(data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        const relationWorkplaces = async () => {
+            const token = Cookies.get("token");
+            const user = Cookies.get("user");
+
+            try {
+                const response = await fetch(`http://localhost:5135/api/RelationWorkplace/GetRelationListByUserId/${user}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                })
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+                const data = await response.json();
+                setRelationWorkplaces(data)
+            } catch (error) {
+                console.error(error);
+            }
+
+        }
+        relationWorkplaces();
         loadWorkplaces();
         fetchWorkplaceInvites();
+        listWorkplaces()
 
     }, []);
 
@@ -138,59 +180,118 @@ const Navbar = () => {
                 </div>
                 <div className="w-full h-[120px] flex flex-col items-center justify-center gap-5 mt-3 mb-6">
                     {
-                        workplaces && workplaces.length > 0 ?
+                        workplaces && workplaces.length > 0 || relationWorkplaces && relationWorkplaces.length > 0 ?
                             <div className="flex flex-col mt-5 gap-2">
-                                <div className="flex flex-row items-center justify-between">
+                                <div className="flex flex-row items-start justify-between w-full">
                                     <h3 className="text-sm text-gray-500 font-semibold text-center self-start">
                                         Workplaces
                                     </h3>
-                                    <FaPlusCircle className="cursor-pointer" />
                                 </div>
                                 <Select value={selectedWorkplace || ""} onValueChange={handleWorkplaceChange}>
                                     <SelectTrigger className="w-[268px] h-[50px]">
-                                        <SelectValue>
-                                            {
-                                                (() => {
-                                                    const selectedWorkplaceData = workplaces.find((workplace) => String(workplace.id) === selectedWorkplace);
-                                                    if (selectedWorkplaceData) {
-                                                        const circleText = selectedWorkplaceData.workplaceName.charAt(0).toUpperCase(); // İlk harfi al
-                                                        return (
-                                                            <div className="flex flex-row gap-3">
-                                                                <span className="font-bold">{circleText}</span> {/* İlk harf */}
-                                                                <span className="ml-2">
-                                                                    {selectedWorkplaceData.workplaceName}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return "Select a Workplace"; // Eğer seçilen yoksa placeholder
-                                                })()
-                                            }
+                                        <SelectValue placeholder="Select a Workplace">
+                                            {(() => {
+                                                const selectedWorkplaceData = workplaces.find(
+                                                    (workplace) => String(workplace.id) === selectedWorkplace
+                                                );
+
+                                                if (selectedWorkplaceData) {
+                                                    const circleText = selectedWorkplaceData.workplaceName.charAt(0).toUpperCase(); // İlk harfi al
+                                                    return (
+                                                        <div className="flex flex-row gap-3">
+                                                            <span className="font-bold">{circleText}</span> {/* İlk harf */}
+                                                            <span className="ml-2">{selectedWorkplaceData.workplaceName}</span>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                const selectedRelationWorkplace = allWorkplaces.find(
+                                                    (workplace) => String(workplace.id) === selectedWorkplace
+                                                );
+
+                                                if (selectedRelationWorkplace) {
+                                                    const circleText = selectedRelationWorkplace.workplaceName.charAt(0).toUpperCase(); // İlk harfi al
+                                                    return (
+                                                        <div className="flex flex-row gap-3">
+                                                            <span className="font-bold">{circleText}</span> {/* İlk harf */}
+                                                            <span className="ml-2">{selectedRelationWorkplace.workplaceName}</span>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return "Select a Workplace"; // Eğer seçilen yoksa placeholder
+                                            })()}
                                         </SelectValue>
                                     </SelectTrigger>
+
                                     <SelectContent>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon"><FaPlusCircle /></Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                                <DialogHeader>
+                                                    <DialogTitle>Create a Workplace</DialogTitle>
+                                                    <DialogDescription>
+                                                        Create a new workplace to start collaborating with your team.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid grid-cols-3 items-center gap-4">
+                                                        <Label htmlFor="name" className="text-right">
+                                                            Workplace Name
+                                                        </Label>
+                                                        <Input
+                                                            id="name"
+                                                            className="col-span-3"
+                                                            placeholder="Enter a name for your workplace"
+                                                            value={workplaceName}
+                                                            onChange={(e) => setWorkplaceName(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <DialogClose>
+                                                    <Button className="w-full" onClick={handleCreateWorkplace}>Create</Button>
+                                                </DialogClose>
+                                            </DialogContent>
+                                        </Dialog>
                                         <SelectGroup>
                                             <SelectLabel>Workplaces</SelectLabel>
-                                            {
-                                                workplaces.map((workplace) => {
-                                                    const circleText = workplace.workplaceName
-                                                        ? workplace.workplaceName.charAt(0).toUpperCase() // Her workplace'in adının ilk harfi
-                                                        : "A";
-                                                    return (
-                                                        <SelectItem key={workplace.id} value={String(workplace.id)}>
-                                                            <div className="flex flex-row gap-3">
-                                                                <span className="font-bold">{circleText}</span> {/* İlk harf */}
-                                                                <span className="ml-2">
-                                                                    {workplace?.workplaceName}
-                                                                </span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    );
-                                                })
-                                            }
+                                            {workplaces.map((workplace) => {
+                                                const circleText = workplace.workplaceName.charAt(0).toUpperCase();
+                                                return (
+                                                    <SelectItem key={workplace.id} value={String(workplace.id)}>
+                                                        <div className="flex flex-row gap-3">
+                                                            <span className="font-bold">{circleText}</span>
+                                                            <span className="ml-2">{workplace.workplaceName}</span>
+                                                        </div>
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectGroup>
+                                        {
+                                            relationWorkplaces && relationWorkplaces.length > 0 &&
+                                            <SelectGroup>
+                                                <SelectLabel>Members Workplaces</SelectLabel>
+                                                {allWorkplaces
+                                                    .filter((item) => relationWorkplaces.some((x) => x.acceptedUserId == userId && x.workplaceId === item.id))
+                                                    .map((workplace) => {
+                                                        const circleText = workplace.workplaceName.charAt(0).toUpperCase();
+                                                        return (
+                                                            <SelectItem key={workplace.id} value={String(workplace.id)}>
+                                                                <div className="flex flex-row gap-3">
+                                                                    <span className="font-bold">{circleText}</span>
+                                                                    <span className="ml-2">{workplace.workplaceName}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                            </SelectGroup>
+                                        }
+
                                     </SelectContent>
                                 </Select>
+
                             </div>
                             :
                             (

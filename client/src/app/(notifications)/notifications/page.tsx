@@ -77,21 +77,30 @@ const Notifications = () => {
     return (
         <div className="w-full h-full p-5">
             <div className="mt-3">
-                <Card>
+                <Card className="w-full h-full">
                     <CardContent className="w-full h-full flex flex-col  mt-3">
                         {
-                            invitations.map((invitation) => {
-                                const user = users.find((u) => u.id === invitation.invitedByUserId);
-                                const workplace = workplaces.find((w) => w.id === invitation.workplaceId);
-                                return (
-                                    <NotificationCard
-                                        key={invitation.id}
-                                        username={user?.username}
-                                        workspaceName={workplace.workplaceName}
-                                        invitationId={invitation.id}
-                                    />
+                            invitations && invitations.length > 0 ?
+                                (
+                                    invitations.map((invitation) => {
+                                        const user = users.find((u) => u.id === invitation.invitedByUserId);
+                                        const workplace = workplaces.find((w) => w.id === invitation.workplaceId);
+                                        return (
+                                            <NotificationCard
+                                                key={invitation.id}
+                                                username={user?.username}
+                                                workspaceName={workplace?.workplaceName}
+                                                invitationId={invitation.id}
+                                                workplaceAdminId={user?.id}
+                                                workplaceId={workplace?.id}
+                                            />
+                                        )
+                                    })
                                 )
-                            })
+                                :
+                                <h1 className="text-muted-foreground text-center">
+                                    You have no notifications.
+                                </h1>
                         }
                     </CardContent>
                 </Card>

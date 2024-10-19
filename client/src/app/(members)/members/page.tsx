@@ -44,6 +44,7 @@ const Members = () => {
     const [data, setData] = useState<Invite[]>([]);
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState("");
+    const userId = Cookies.get("user")
 
     useEffect(() => {
         const token = Cookies.get("token");
@@ -155,7 +156,7 @@ const Members = () => {
                                         <SelectGroup>
                                             <SelectLabel>Accounts</SelectLabel>
                                             {
-                                                users.map((item) => (
+                                                users.filter((x) => x.id != userId).map((item) => (
                                                     <SelectItem key={item.id} value={item.email}>
                                                         {item.username} - {item.email}
                                                     </SelectItem>
