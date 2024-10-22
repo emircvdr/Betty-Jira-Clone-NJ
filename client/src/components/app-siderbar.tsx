@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     Sidebar,
@@ -14,14 +16,14 @@ import {
     SidebarSeparator,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { Bell, ChevronDown, ChevronUp, Home, ListChecks, LogOut, Settings, User, User2 } from "lucide-react"
+import { Bell, ChevronDown, ChevronUp, Home, ListChecks, LogOut, PlusCircle, Settings, User, User2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation";
-import { useSidebarContext } from "@/context/SiderbardContext";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import CreateNewWorkplaceDialog from "./CreateNewWorkplaceDialog";
+import { fetchWorkplaces } from "@/app/api/workplacesAPI";
 
 const GreenCircle = () => (
     <svg
@@ -41,11 +43,129 @@ export function AppSidebar() {
     const {
         open,
     } = useSidebar()
-    const route = useRouter();
-    const userId = Cookies.get("user");
+    const router = useRouter();
     const pathname = usePathname();
-    const { workplaces, username, membersWorkplaces, allWorkplaces, workplacesInvites } = useSidebarContext();
+    const [user, setUser] = useState<any[]>([]);
+    const [workplaces, setWorkplaces] = useState<any[]>([]);
+    const [workplaceInvites, setWorkplaceInvites] = useState<any[]>([]);
+    const [allWorkplaces, setAllWorkplaces] = useState<any[]>([]);
+    const [membersWorkplaces, setMembersWorkplaces] = useState<any[]>([]);
     const [selectedWorkspace, setSelectedWorkspace] = useState<any | null>(null);
+    const token = Cookies.get("token");
+    const userId = Cookies.get("user");
+    const workplaceId = Cookies.get("workplace");
+
+    const [isMember, setIsMember] = useState(false);
+
+    useEffect(() => {
+        if (!token) {
+            router.push("/login");
+            return;
+        }
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5135/api/Auth/GetUser/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+
+                const data = await response.json();
+                setUser(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const loadWorkplaces = async () => {
+            try {
+                const data = await fetchWorkplaces(userId);
+                if (data) setWorkplaces(prev => data); // sadece değişiklik varsa state güncelle
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const fetchWorkplaceInvites = async () => {
+            try {
+                const response = await fetch(`http://localhost:5135/api/WorkplaceInvite/getInviteById/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+
+                const data = await response.json();
+                setWorkplaceInvites(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const listWorkplaces = async () => {
+            try {
+                const response = await fetch(`http://localhost:5135/api/Workplace/listWorkplaces`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+
+                const data = await response.json();
+                if (data) setAllWorkplaces(prev => data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const relationWorkplaces = async () => {
+            try {
+                const response = await fetch(`http://localhost:5135/api/RelationWorkplace/GetRelationListByUserId/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+
+                const data = await response.json();
+                setMembersWorkplaces(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const setWorkplaceFromCookie = () => {
+            if (workplaceId && workplaces.length && allWorkplaces.length) {
+                const workspace = [...workplaces, ...allWorkplaces].find(ws => ws.id === Number(workplaceId));
+                setSelectedWorkspace(workspace || null);
+            }
+        };
+
+        fetchData();
+        loadWorkplaces();
+        fetchWorkplaceInvites();
+        listWorkplaces();
+        relationWorkplaces();
+        setWorkplaceFromCookie();
+    }, [router, workplaces.length, allWorkplaces.length]);
 
     const menuItems = [
         {
@@ -59,7 +179,7 @@ export function AppSidebar() {
             url: "/notifications",
             notificatons: (
                 <span className="bg-red-500 text-white  border rounded-full w-6 h-6 text-center flex items-center justify-center">
-                    {workplacesInvites?.length}
+                    {workplaceInvites?.length}
                 </span>
             )
         },
@@ -72,6 +192,7 @@ export function AppSidebar() {
             title: "Settings",
             icon: Settings,
             url: "/settings",
+            isVisible: !isMember,
         },
         {
             title: "Members",
@@ -80,27 +201,19 @@ export function AppSidebar() {
         },
     ];
 
-    // Sayfa yüklendiğinde cookie'den workspace ID'sini al
-    useEffect(() => {
-        const workplaceId = Cookies.get("workplace");
-        console.log("Cookie'den okunan ID:", workplaceId); // Cookie'den okunan değeri kontrol et
-
-
-        if (workplaceId) {
-            const idNumber = Number(workplaceId);
-            const workspace = [...workplaces, ...allWorkplaces].find(ws => ws.id === idNumber);
-            console.log("Bulunan Workspace:", workspace); // Bulunan workspace'ı kontrol et
-            setSelectedWorkspace(workspace || null); // Eğer workspace bulunamazsa null ata
-        }
-    }, [workplaces, allWorkplaces]);
+    const selectedWorkplaceFirstLetter = selectedWorkspace?.workplaceName.charAt(0).toUpperCase();
 
     const handleWorkspaceSelect = (workspace: any) => {
         setSelectedWorkspace(workspace);
-        Cookies.set("workplace", workspace.id); // Workspace ID'sini cookie'ye kaydet
-        console.log("Seçilen Workspace ID:", workspace.id); // Seçilen ID'yi kontrol et
+        Cookies.set("workplace", workspace.id);
+        console.log("Seçilen Workspace ID:", workspace.id);
+        const isMember = membersWorkplaces.some(
+            (x) => x.workplaceAdminId != userId && x.acceptedUserId == userId && x.workplaceId === workspace.id
+        )
+        setIsMember(isMember);
     };
 
-    const selectedWorkplaceFirstLetter = selectedWorkspace?.workplaceName.charAt(0).toUpperCase();
+
 
     return (
         <Sidebar variant="sidebar" collapsible="icon">
@@ -128,8 +241,6 @@ export function AppSidebar() {
                                                     }
                                                 </span>
                                             </div>
-
-
                                         </div>
                                         : "Select Workspace"}
                                     <ChevronDown className="ml-auto" />
@@ -189,11 +300,11 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {
-                                menuItems.map((item) => (
+                                menuItems.filter(item => item.isVisible !== false).map((item) => (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild isActive={pathname === item.url} size={
                                             open ? "lg" : "sm"
-                                        }>
+                                        } >
                                             <a href={item.url}>
                                                 <item.icon />
                                                 <span>{item.title}</span>
@@ -203,6 +314,34 @@ export function AppSidebar() {
                                     </SidebarMenuItem>
                                 ))}
                         </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Projects</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        {
+                            !isMember && (
+                                <SidebarMenuButton asChild size={
+                                    open ? "lg" : "sm"
+                                } className="border">
+                                    <span className="flex justify-between items-center">Create New Project <PlusCircle />
+                                    </span>
+                                </SidebarMenuButton>
+                            )
+                        }
+                        {
+                            workplaces.map((item) => (
+                                <SidebarMenu key={item.id}>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton asChild size={open ? "sm" : "sm"}>
+                                            <a href={`/workplace/${item.id}`}>
+                                                <span>{item.workplaceName}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            ))
+                        }
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
@@ -215,19 +354,19 @@ export function AppSidebar() {
                                 <SidebarMenuButton size={
                                     open ? "lg" : "sm"
                                 }>
-                                    <User2 /> {username?.username}
+                                    <User2 /> {user?.username}
                                     <ChevronUp className="ml-auto" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
-                                <DropdownMenuItem onClick={() => route.push("/profile")}>
+                                <DropdownMenuItem onClick={() => router.push("/profile")}>
                                     <User2 />
                                     <span> Profile</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                     Cookies.remove("user");
                                     Cookies.remove("token");
-                                    route.push("/login");
+                                    router.push("/login");
                                 }}>
                                     <LogOut />
                                     <span>Log out</span>
