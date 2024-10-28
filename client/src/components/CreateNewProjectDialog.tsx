@@ -9,16 +9,16 @@ import { FaPlusCircle } from 'react-icons/fa'
 import { createWorkplace, fetchWorkplaces } from '@/app/api/workplacesAPI'
 import Cookies from 'js-cookie'
 
-const CreateNewWorkplaceDialog = () => {
-    const [workplaces, setWorkplaces] = useState([]);
-    const [workplaceName, setWorkplaceName] = useState("");
+const CreateNewProjectDialog = () => {
+    const [projects, setProjects] = useState([]);
+    const [projectName, setProjectName] = useState("");
     const userId = Cookies.get("user");
     const handleCreateWorkplace = async () => {
         try {
-            await createWorkplace(workplaceName, userId);
-            setWorkplaceName("");
+            await createWorkplace(projectName, userId);
+            setProjectName("");
             const data = await fetchWorkplaces(userId);
-            setWorkplaces(data);
+            setProjects(data);
         } catch (error) {
             console.error(error);
         }
@@ -45,8 +45,8 @@ const CreateNewWorkplaceDialog = () => {
                             id="name"
                             className="col-span-3"
                             placeholder="Enter a name for your workplace"
-                            value={workplaceName}
-                            onChange={(e) => setWorkplaceName(e.target.value)}
+                            value={projectName}
+                            onChange={(e) => setProjectName(e.target.value)}
                         />
                     </div>
                 </div>
@@ -58,4 +58,4 @@ const CreateNewWorkplaceDialog = () => {
     )
 }
 
-export default CreateNewWorkplaceDialog
+export default CreateNewProjectDialog

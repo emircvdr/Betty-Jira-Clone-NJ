@@ -16,11 +16,11 @@ const Dashboard = () => {
 
 
   return (
-    <div className="flex flex-col">
-      <div>
-        <h1 className="text-red-900">hello</h1>
-      </div>
+    <div className="w-full h-full">
+      <h1 className="text-red-900">hello</h1>
     </div>
+
+
 
   );
 }

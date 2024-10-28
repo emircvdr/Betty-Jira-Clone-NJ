@@ -30,7 +30,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#1100101]`}
       >
-
         <Toaster position="top-right" />
         <SidebarProvider>
           {children}

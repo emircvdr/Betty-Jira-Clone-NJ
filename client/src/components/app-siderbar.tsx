@@ -16,7 +16,7 @@ import {
     SidebarSeparator,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { Bell, ChevronDown, ChevronUp, Home, ListChecks, LogOut, PlusCircle, Settings, User, User2 } from "lucide-react"
+import { Bell, ChevronDown, ChevronUp, HelpCircleIcon, Home, ListChecks, LogOut, PlusCircle, Settings, User, User2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation";
@@ -24,6 +24,7 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import CreateNewWorkplaceDialog from "./CreateNewWorkplaceDialog";
 import { fetchWorkplaces } from "@/app/api/workplacesAPI";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 const GreenCircle = () => (
     <svg
@@ -45,7 +46,7 @@ export function AppSidebar() {
     } = useSidebar()
     const router = useRouter();
     const pathname = usePathname();
-    const [user, setUser] = useState<any[]>([]);
+    const [user, setUser] = useState<any>(null);
     const [workplaces, setWorkplaces] = useState<any[]>([]);
     const [workplaceInvites, setWorkplaceInvites] = useState<any[]>([]);
     const [allWorkplaces, setAllWorkplaces] = useState<any[]>([]);
@@ -202,6 +203,7 @@ export function AppSidebar() {
     ];
 
     const selectedWorkplaceFirstLetter = selectedWorkspace?.workplaceName.charAt(0).toUpperCase();
+    const userFirstLetter = user?.username.charAt(0).toUpperCase();
 
     const handleWorkspaceSelect = (workspace: any) => {
         setSelectedWorkspace(workspace);
@@ -316,53 +318,95 @@ export function AppSidebar() {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-                <SidebarGroup>
-                    <SidebarGroupLabel>Projects</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        {
-                            !isMember && (
-                                <SidebarMenuButton asChild size={
-                                    open ? "lg" : "sm"
-                                } className="border">
-                                    <span className="flex justify-between items-center">Create New Project <PlusCircle />
-                                    </span>
-                                </SidebarMenuButton>
-                            )
-                        }
-                        {
-                            workplaces.map((item) => (
-                                <SidebarMenu key={item.id}>
-                                    <SidebarMenuItem>
-                                        <SidebarMenuButton asChild size={open ? "sm" : "sm"}>
-                                            <a href={`/workplace/${item.id}`}>
-                                                <span>{item.workplaceName}</span>
-                                            </a>
+                <Collapsible defaultOpen className="group/collapsible"  >
+                    <SidebarGroup>
+                        <SidebarGroupLabel asChild>
+                            <CollapsibleTrigger>
+                                Projects
+                                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                            </CollapsibleTrigger>
+                        </SidebarGroupLabel>
+                        <CollapsibleContent >
+                            <SidebarGroupContent>
+                                {
+                                    !isMember && (
+                                        <SidebarMenuButton asChild size={
+                                            open ? "md" : "sm"
+                                        } className="border">
+                                            {
+                                                open ? (
+                                                    <span className="flex justify-between items-center">Create New Project <PlusCircle />
+                                                    </span>
+                                                ) : <PlusCircle />
+                                            }
                                         </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                </SidebarMenu>
-                            ))
-                        }
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                                    )
+                                }
+                                {
+                                    workplaces.map((item) => (
+                                        <SidebarMenu key={item.id}>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton asChild size={open ? "sm" : "sm"}>
+                                                    <a href={`/workplace/${item.id}`}>
+                                                        <span>{item.workplaceName}</span>
+                                                    </a>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        </SidebarMenu>
+                                    ))
+                                }
+                            </SidebarGroupContent>
+                        </CollapsibleContent>
+                    </SidebarGroup>
+                </Collapsible>
             </SidebarContent>
             <SidebarSeparator />
             <SidebarFooter>
                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <DropdownMenu>
+                    <SidebarMenuItem >
+                        <DropdownMenu >
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton size={
-                                    open ? "lg" : "sm"
+                                    open ? "lg" : "lg"
                                 }>
-                                    <User2 /> {user?.username}
-                                    <ChevronUp className="ml-auto" />
+                                    {
+                                        open ? (
+                                            <>
+                                                <span className=" w-8 h-8 rounded-md bg-black text-white flex items-center justify-center font-bold">{userFirstLetter}</span>
+                                                <div className="flex flex-col">
+                                                    <span>{user?.username}</span>
+                                                    <span className="text-muted-foreground text-[12px]">{user?.email}</span>
+                                                </div>
+                                                <ChevronUp className="ml-auto" />
+                                            </>
+                                        ) : <span className="
+                                        w-8 h-8 rounded-md bg-black text-white flex items-center justify-center font-bold
+                                        ">{userFirstLetter}</span>
+                                    }
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+                            <DropdownMenuContent side={
+                                open ? "top" : "right"
+                            } className={
+                                open ? "w-[--radix-popper-anchor-width]" : "w-48"
+                            }>
+                                <div className="flex items-start gap-2 p-1">
+                                    <span className=" w-9 h-9 rounded-md bg-black text-white flex items-center justify-center font-bold">{userFirstLetter}</span>
+                                    <div className="flex flex-col gap-0">
+                                        <span className="text-sm">{user?.username}</span>
+                                        <span className="text-muted-foreground text-[12px]">{user?.email}</span>
+                                    </div>
+                                </div>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => router.push("/profile")}>
                                     <User2 />
                                     <span> Profile</span>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push("/")}>
+                                    <HelpCircleIcon />
+                                    <span> Help</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => {
                                     Cookies.remove("user");
                                     Cookies.remove("token");
