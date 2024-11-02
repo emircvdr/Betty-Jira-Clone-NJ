@@ -77,7 +77,7 @@ const Notifications = () => {
     return (
 
         <div className="w-full h-full p-5">
-            <div className="mt-3">
+            <div className="mt-3 ">
                 <Card className="w-full h-full">
                     <CardContent className="w-full h-full flex flex-col  mt-3">
                         {

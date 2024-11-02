@@ -49,6 +49,7 @@ const Members = () => {
     useEffect(() => {
         const token = Cookies.get("token");
         const userId = Cookies.get("user");
+        const workplace = Cookies.get("workplace");
 
         const fetchInvites = async () => {
             try {
@@ -62,9 +63,9 @@ const Members = () => {
                 if (!response.ok) {
                     throw new Error("Veri alınırken bir hata oluştu");
                 }
-
                 const data = await response.json();
-                setData(data);
+                const filteredData = data.filter((x) => x.workplaceId == workplace);
+                setData(filteredData);
             } catch (error) {
                 console.error(error);
             }

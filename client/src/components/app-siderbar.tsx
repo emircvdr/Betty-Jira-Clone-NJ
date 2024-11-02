@@ -305,9 +305,9 @@ export function AppSidebar() {
                                 menuItems.filter(item => item.isVisible !== false).map((item) => (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild isActive={pathname === item.url} size={
-                                            open ? "lg" : "sm"
+                                            open ? "sm" : "sm"
                                         } >
-                                            <a href={item.url}>
+                                            <a href={item.url} className="mb-2 font-semibold">
                                                 <item.icon />
                                                 <span>{item.title}</span>
                                             </a>
