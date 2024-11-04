@@ -25,6 +25,8 @@ import Cookies from "js-cookie";
 import CreateNewWorkplaceDialog from "./CreateNewWorkplaceDialog";
 import { fetchWorkplaces } from "@/app/api/workplacesAPI";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import CreateNewProjectDialog from "./CreateNewProjectDialog";
+import { fetchProjects } from "@/app/api/projectAPI";
 
 const GreenCircle = () => (
     <svg
@@ -48,6 +50,7 @@ export function AppSidebar() {
     const pathname = usePathname();
     const [user, setUser] = useState<any>(null);
     const [workplaces, setWorkplaces] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
     const [workplaceInvites, setWorkplaceInvites] = useState<any[]>([]);
     const [allWorkplaces, setAllWorkplaces] = useState<any[]>([]);
     const [membersWorkplaces, setMembersWorkplaces] = useState<any[]>([]);
@@ -83,6 +86,27 @@ export function AppSidebar() {
                 console.error(error);
             }
         };
+
+        const listProjects = async () => {
+            const token = Cookies.get("token");
+            try {
+                const response = await fetch(`http://localhost:5135/api/Project/GetProjectWithWorkplaceID/${workplaceId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Veri alınırken bir hata oluştu");
+                }
+                const data = await response.json();
+                setProjects(data);
+            } catch (error) {
+                console.error("Bir hata oluştu: ", error);
+                throw error;
+            }
+        }
 
         const loadWorkplaces = async () => {
             try {
@@ -166,6 +190,7 @@ export function AppSidebar() {
         listWorkplaces();
         relationWorkplaces();
         setWorkplaceFromCookie();
+        listProjects();
     }, [router, workplaces.length, allWorkplaces.length]);
 
     const menuItems = [
@@ -335,21 +360,20 @@ export function AppSidebar() {
                                         } className="border">
                                             {
                                                 open ? (
-                                                    <span className="flex justify-between items-center">Create New Project <PlusCircle />
-                                                    </span>
+                                                    <CreateNewProjectDialog />
                                                 ) : <PlusCircle />
                                             }
                                         </SidebarMenuButton>
                                     )
                                 }
                                 {
-                                    workplaces.map((item) => (
+                                    projects.map((item) => (
                                         <SidebarMenu key={item.id}>
                                             <SidebarMenuItem>
                                                 <SidebarMenuButton asChild size={open ? "sm" : "sm"}>
-                                                    <a href={`/workplace/${item.id}`}>
-                                                        <span>{item.workplaceName}</span>
-                                                    </a>
+                                                    <span>
+                                                        {item.name}
+                                                    </span>
                                                 </SidebarMenuButton>
                                             </SidebarMenuItem>
                                         </SidebarMenu>

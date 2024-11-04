@@ -6,19 +6,20 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { FaPlusCircle } from 'react-icons/fa'
-import { createWorkplace, fetchWorkplaces } from '@/app/api/workplacesAPI'
 import Cookies from 'js-cookie'
+import { createProject } from '@/app/api/projectAPI'
 
 const CreateNewProjectDialog = () => {
     const [projects, setProjects] = useState([]);
     const [projectName, setProjectName] = useState("");
     const userId = Cookies.get("user");
-    const handleCreateWorkplace = async () => {
+    const workplace = Cookies.get("workplace");
+    const handleCreateProject = async () => {
         try {
-            await createWorkplace(projectName, userId);
+            await createProject(projectName, userId, workplace);
             setProjectName("");
-            const data = await fetchWorkplaces(userId);
-            setProjects(data);
+            // const data = await fetchWorkplaces(userId);
+            // setProjects(data);
         } catch (error) {
             console.error(error);
         }
@@ -27,31 +28,31 @@ const CreateNewProjectDialog = () => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" className='w-full p-3 flex gap-2 justify-start items-center'><FaPlusCircle />Create a new Workplace</Button>
+                <Button variant="outline" className='w-full p-3 flex gap-2 justify-start items-center'><FaPlusCircle />Create a new Project</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Create a Workplace</DialogTitle>
+                    <DialogTitle>Create a Project</DialogTitle>
                     <DialogDescription>
-                        Create a new workplace to start collaborating with your team.
+                        Create a new proejct to start collaborating with your team.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-3 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                            Workplace Name
+                        <Label htmlFor="name" className="text-left">
+                            Project Name
                         </Label>
                         <Input
                             id="name"
                             className="col-span-3"
-                            placeholder="Enter a name for your workplace"
+                            placeholder="Enter a name for your project"
                             value={projectName}
                             onChange={(e) => setProjectName(e.target.value)}
                         />
                     </div>
                 </div>
                 <DialogClose>
-                    <Button className="w-full" onClick={handleCreateWorkplace}>Create</Button>
+                    <Button className="w-full" onClick={handleCreateProject}>Create</Button>
                 </DialogClose>
             </DialogContent>
         </Dialog>
